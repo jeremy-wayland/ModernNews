@@ -14,6 +14,7 @@ datetime = "^5.1"
 beautifulsoup4 = "^4.12.2"
 eventbrite = "^3.3.5"
 newsapi-python = "^0.2.7"
+python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
