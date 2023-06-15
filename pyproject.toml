@@ -8,7 +8,17 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 numpy = "^1.24.3"
+pandas = "^2.0.2"
+langchain = "^0.0.200"
+datetime = "^5.1"
+beautifulsoup4 = "^4.12.2"
+eventbrite = "^3.3.5"
+newsapi-python = "^0.2.7"
+python-dotenv = "^1.0.0"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.23.2"
 
 [build-system]
 requires = ["poetry-core"]
