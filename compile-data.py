@@ -5,7 +5,6 @@ from langchain.agents import initialize_agent
 from langchain.agents import AgentType
 import datetime
 from datetime import date, timedelta, datetime
-from newspaper import Article
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -27,6 +26,7 @@ yesterday = today - timedelta(days=1)
 
 start_date = yesterday.strftime('%Y-%m-%d')
 end_date = today.strftime('%Y-%m-%d')
+# print(end_date)
 
 # #### Defining user class & preferences - can be collected with an onboarding quiz
 
@@ -43,9 +43,6 @@ all_articles = newsapi.get_everything(q='this weekend AND brooklyn',
                                       sort_by='relevancy',
                                       page=1,
                                       page_size=3)
-
-
-# all_articles['articles'][0]
 
 
 # The News-API is helpful for retrieving the big info on news and articles, like the:
@@ -66,36 +63,7 @@ all_articles = newsapi.get_everything(q='this weekend AND brooklyn',
 # - Alternatively you can use the AND / OR / NOT keywords, and optionally group these with parenthesis. Eg: crypto AND (ethereum OR litecoin) NOT bitcoin.
 # - The complete value for q must be URL-encoded. Max length: 500 chars.
 
-# Newspaper3k (method below) wasn't reliable for handling many different div classes
-
-
-# # Function to scrape article content from a given URL using Newspaper3k
-# def scrape_article_content(url):
-#     # Initialize the Article object
-#     article = Article(url)
-    
-#     # Download and parse the article
-#     article.download()
-#     article.parse()
-    
-#     # Extract the article content
-#     article_text = article.text
-    
-#     # Return the scraped article content
-#     return article_text
-
-# # Example usage
-# url = 'https://www.brit.co/pride-month/'
-# article_content = scrape_article_content(url)
-
-# # Check if the article content was successfully scraped
-# if article_content:
-#     print(article_content)
-# else:
-#     print("Failed to scrape the article content.")
-
-
-# Alternatively, doing so manually using BeautifulSoup
+# Scraping manually using BeautifulSoup
 
 def newsapi_extract_strings(query):
     '''Parse the News-API query formats to retrieve only the base string(s)'''
@@ -182,12 +150,6 @@ def newsapi_find_url_div_class_with_text(url, search_word):
     return class_elements
 
 
-# newsapi_extract_strings('+nyc')
-
-# newsapi_find_url_div_class_with_text(
-#     'https://hypebeast.com/2023/6/nfl-humberto-leon-pride-month-capsule-collection-release-info', 'fashion AND nyc')
-
-
 def newsapi_get_url_content(url, search_word):
     '''Returns the largest body of relevant content, in str format'''
     
@@ -205,11 +167,7 @@ def newsapi_get_url_content(url, search_word):
     return larg_content_piece
 
 
-# newsapi_get_url_content(url, search_word)
-
-
 # #### Load content from News-API
-
 
 def newsapi_load_content(q, start_date, end_date, language='en', sort_by='relevancy', page=1, n_content=3):
     '''Load and store up to top N pieces of content for this topic, in pandas format'''
@@ -245,10 +203,7 @@ def newsapi_load_content(q, start_date, end_date, language='en', sort_by='releva
     
     return df
 
-
-# newsapi_df = newsapi_load_content(q='real madrid', start_date=start_date, end_date=end_date)
-
-
+# Check snews sources in news-api
 # [source['name'] for source in newsapi.get_sources()['sources'] if 'name' in source]
 
 
@@ -256,6 +211,7 @@ def newsapi_load_content(q, start_date, end_date, language='en', sort_by='releva
 
 # eventbriteapi = eventbrite.Eventbrite(oauth_token='YFCIIJ6KT2WOL6AHRRSA')
 
+# See event ategories in eventbrite
 # [cat['name'] for cat in eventbriteapi.get_subcategories()['subcategories'] if 'name' in cat]
 
 def eventbrite_get_event_ids(state, city, search, num_events=6):
@@ -291,18 +247,9 @@ def eventbrite_get_event_ids(state, city, search, num_events=6):
     return None
 
 
-# eventbrite_event_ids = eventbrite_get_event_ids('ny','brooklyn', 'film-writing',)
-
-
-# eventbrite_event_ids
-
-# Get event info using event id - dict
-# eventbriteapi.get_event(id=eventbrite_event_ids[0])['start']['local']
-
-
 # #### Load content from eventbrite
 
-def eventbrite_load_content(state, city, search, n_content=3):
+def eventbrite_load_events(state, city, search, n_content=3):
     '''Load and store up to top N pieces of local events for this search, in pandas format'''
     
     # Define N as n_content * 2 to account for double (app/web) search results - until fixed
@@ -336,11 +283,6 @@ def eventbrite_load_content(state, city, search, n_content=3):
     df['eventbrite_url'] = content_dict['eventbrite_url']
     
     return df
-
-
-# eventbrite_df = eventbrite_load_content('ny', 'brooklyn', 'writing')
-
-# eventbrite_df
 
 
 # ### Patch API - website makeshift
@@ -407,9 +349,6 @@ def patch_get_content_urls(state, city, category, max_content=3):
     return None
 
 
-# patch_get_content_urls('new-york', 'new-york-city', 'restaurants-bars')
-
-
 def patch_load_content(state, city, category, max_content=3):
     '''Load and store up to top N pieces of local events content for this category, in pandas format'''
     
@@ -463,15 +402,10 @@ def patch_load_content(state, city, category, max_content=3):
         return 'No recent content.'
 
 
-# patch_df = patch_load_content('new-york', 'new-york-city', 'restaurants-bars')
-
-# patch_df
-
-
 # #### Patch events
 
-def patch_get_event_urls(state, city, max_content=5):
-    '''Load content urls, in list format'''
+def patch_get_event_info_url(state, city, max_content=5):
+    '''Load event urls, in list format'''
     
     # Define url template - some url parameters are fixed (ie. events, next-week, pages=1, free events)
     url_template = 'https://patch.com/{state}/{city}/calendar'
@@ -489,51 +423,77 @@ def patch_get_event_urls(state, city, max_content=5):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Find most recent 5 div elements
-        div_elements = soup.find_all('time', 
-                                    class_='styles_EventDateAndTime__eventDetail__TNlkQ',
-                                    limit=max_content)        
-        dates = []
+        # Get two sperate pieces of inforamation on events - month/day and time
+        # Find most recent 5 div elements - month/day
+        div_elements_date = soup.find_all('div', 
+                                    class_='calendar-icon__date',
+                                    limit=max_content)
         
-        for div_element in div_elements:
-            # Extract date element
-            day_time_string = div_element.text.strip()
-            
+         # Find most recent 5 div elements - times
+        div_elements_time = soup.find_all('time', 
+                                    class_='styles_EventDateAndTime__eventDetail__TNlkQ',
+                                    limit=max_content)
+
+        # Get the current year, to append to calendar date/time
+        current_year = datetime.now().year
+
+        days = []        
+        for div_element in div_elements_date:
             try:
-                # Get the current year
-                current_year = datetime.now().year
-
-                # Add the year to the input string
-                input_string_with_year = f'{current_year} {day_time_string}'
-
-                # Parse the input string with year using the specified format
-                date_obj = datetime.strptime(input_string_with_year, '%Y %A, %I:%M %p')
-
-                # Format the date object as a string in the desired format
-                formatted_date = date_obj.strftime('%Y-%m-%d')
-                
-                dates.append(formatted_date)
+                # Extract month and day values and format as datetime object with current year
+                month = div_element.find('strong', class_='calendar-icon__month').text
+                day = div_element.find('strong', class_='calendar-icon__day').text
+                formatted_day = datetime.strptime(f"{month} {day} {current_year}", "%b %d %Y")
+                days.append(formatted_day)
                 
             except AttributeError:
                 pass
-            
-        return dates
+        
+        times = []
+        for div_element in div_elements_time:
+            try:
+                # Extract time string
+                day_time_string = div_element.text.strip().split(', ')[1]
+                # day = div_element.find('strong', class_='calendar-icon__day').text
+                # formatted_date = datetime.strptime(f"{month} {day} {current_year}", "%b %d %Y")
+                times.append(day_time_string)
+                
+            except AttributeError:
+                pass
 
-        # SECOND - IDENTIFY URLS FOR DATED CONTENT ABOVE - GET URLS
-        urls = []
-        
-        for i in indices:
+        formatted_dates = []
+
+        for date, time in zip(days, times):
+            formatted_time = datetime.strptime(time, "%I:%M %p").time()
+            formatted_datetime = datetime.combine(date.date(), formatted_time).isoformat()
+            formatted_dates.append(formatted_datetime)
+
+        # Make sure at LEAST one event, the earliest, is within the next 7 days
+        today = date.today().date()
+
+        # Get the first date from the list and parse the date string into a datetime object
+        date_object = datetime.strptime(formatted_dates[0], '%Y-%m-%dT%H:%M:%S')
+        first_date = date_object.date()
+
+        # Calculate the difference in days
+        days_diff = (first_date - today).days
+
+        # Check if the first date is within 7 days from today
+        if 0 <= days_diff <= 7:
+            # SECOND - IDENTIFY URLS FOR DATED CONTENT ABOVE - GET URLS
             div_elements = soup.find_all('a', 
-                                        class_='MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-syvjvm',
+                                        class_='styles_Card__Thumbnail__FioCE',
                                         limit=max_content)
-            urls.append('https://patch.com'+div_elements[0]['href'])
         
-        return urls
+            urls = ['https://patch.com'+url['href'] for url in div_elements]
+            return urls
+        else:
+            pass
     
     # If the request was not successful, return None or handle the error accordingly
-    return None
+    return 'No upcoming events'
 
 
-patch_get_event_urls('new-york','bed-stuy')
+patch_get_event_info_url('new-york','fortgreene')
 
 
