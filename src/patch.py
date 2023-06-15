@@ -264,7 +264,7 @@ if __name__ == "__main__":
         help="Specify city your localized patch query.",
     )
     parser.add_argument(
-        "-t",
+        "-T",
         "--topic",
         type=str,
         default="sports",
