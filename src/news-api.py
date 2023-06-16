@@ -157,7 +157,7 @@ def newsapi_get_url_content(url, search_word):
 
 
 def newsapi_load_content(
-    q, start_date, end_date, language="en", sort_by="relevancy", page=1, n_content=3
+    q, start_date, end_date, language="en", sort_by="relevancy", page=1, n_content=5
 ):
     """Load and store up to top N pieces of content for this topic, in pandas format"""
 
@@ -168,7 +168,7 @@ def newsapi_load_content(
         to=end_date,
         language=language,
         sort_by=sort_by,
-        page=1,
+        page=page,
         page_size=n_content,
     )
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         "-Q",
         "--query",
         type=str,
-        default="munich",
+        default="street fashion",
         help="Specify search for words and phrases in the article title and body.",
     )
     parser.add_argument(
