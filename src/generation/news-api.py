@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import sys
 import string
 import re
+import pickle
 
 import pandas as pd
 import requests
@@ -192,6 +193,7 @@ if __name__ == "__main__":
 
     # Load from .env
     load_dotenv()
+    root = os.getenv("root")
     api_key = os.getenv("news-api")
     # Init
     newsapi = NewsApiClient(api_key=api_key)
@@ -202,10 +204,19 @@ if __name__ == "__main__":
     start_date = yesterday.strftime("%Y-%m-%d")
     end_date = today.strftime("%Y-%m-%d")
 
-    print(
-        newsapi_load_content(
-            q="politics",
-            start_date=start_date,
-            end_date=end_date,
-        )
+    content = newsapi_load_content(
+        q="politics",
+        start_date=start_date,
+        end_date=end_date,
     )
+    out_dir = os.path.join(root, "data/news-api/")
+
+    out_file = os.path.join(out_dir, "news-api_test.pkl")
+
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
+
+    with open(out_file, "wb") as f:
+        pickle.dump(content, f)
+
+    print("File Written")

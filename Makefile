@@ -1,8 +1,8 @@
 patch:
-	@python src/patch.py 
+	@python src/generation/patch.py 
 
 eventbrite:
-	@python src/event-brite.py 
+	@python src/generation/event-brite.py 
 
 news-api:
-	@python src/news-api.py
+	@python src/generation/news-api.py
