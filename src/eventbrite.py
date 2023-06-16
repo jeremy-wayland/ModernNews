@@ -1,7 +1,6 @@
 " Interface for extracting info from Eventbrite"
 
 import os
-
 import eventbrite
 import pandas as pd
 import requests
@@ -11,7 +10,7 @@ from dotenv import load_dotenv
 # ### Eventbrite API
 # Load from .env
 load_dotenv()
-api_key = os.getenv("eventbrite")
+api_key = os.getenv("EVENTBRITE_KEY")
 
 eventbriteapi = eventbrite.Eventbrite(oauth_token=api_key)
 
@@ -57,7 +56,7 @@ def eventbrite_get_event_ids(state, city, search, num_events=6):
         return event_ids
 
     # If the request was not successful, return None or handle the error accordingly
-    return None
+    return 'No relevant event IDs.'
 
 
 # #### Load content from eventbrite
@@ -96,4 +95,8 @@ def eventbrite_load_events(state, city, search, n_content=3):
     df["eventbrite_time"] = pd.to_datetime(content_dict["eventbrite_time"])
     df["eventbrite_url"] = content_dict["eventbrite_url"]
 
-    return df
+    df_sorted = df.sort_values(by='eventbrite_time', ascending=True)
+
+    return df_sorted
+
+print(eventbrite_load_events('new-york','new-york-city','sports'))
