@@ -137,5 +137,3 @@ if __name__ == "__main__":
     this = sys.modules[__name__]
 
     print(eventbrite_load_events(args.state, args.city, args.topic))
-
-    return df
