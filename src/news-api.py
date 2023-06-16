@@ -1,5 +1,6 @@
 " Interface for extracting info from News-API"
 import argparse
+
 import sys
 import os
 from datetime import date, timedelta
@@ -192,6 +193,7 @@ def newsapi_load_content(
     df["newsapi_content"] = content_dict["newsapi_content"]
 
     return df
+
 
 # print(newsapi_load_content(q='politics', start_date=start_date, end_date=end_date))
 
