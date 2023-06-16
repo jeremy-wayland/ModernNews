@@ -1,7 +1,9 @@
 " Interface for extracting info from Eventbrite"
 
+import argparse
+import sys
 import os
-import eventbrite
+from eventbrite import Eventbrite 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -12,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 api_key = os.getenv("EVENTBRITE_KEY")
 
-eventbriteapi = eventbrite.Eventbrite(oauth_token=api_key)
+eventbriteapi = Eventbrite(api_key)
 
 # See event ategories in eventbrite
 # [cat['name'] for cat in eventbriteapi.get_subcategories()['subcategories'] if 'name' in cat]
@@ -99,4 +101,36 @@ def eventbrite_load_events(state, city, search, n_content=3):
 
     return df_sorted
 
-print(eventbrite_load_events('new-york','new-york-city','sports'))
+# print(eventbrite_load_events('new-york','new-york-city','sports'))
+
+# Making Executable Action when you run the python file
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-S",
+        "--state",
+        type=str,
+        default="new-york",
+        help="Specify state for your localized eventbrite search.",
+    )
+    parser.add_argument(
+        "-C",
+        "--city",
+        type=str,
+        default="new-york-city",
+        help="Specify city for your localized eventbrite search.",
+    )
+    parser.add_argument(
+        "-T",
+        "--topic",
+        type=str,
+        default="sports",
+        help="Specify topic for your localized eventbrite search.",
+    )
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    print(eventbrite_load_events(args.state, args.city, args.topic))

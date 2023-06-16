@@ -1,5 +1,6 @@
 " Interface for extracting info from News-API"
 import argparse
+import sys
 import os
 from datetime import date, timedelta
 import string
@@ -192,5 +193,37 @@ def newsapi_load_content(
 
     return df
 
-print(newsapi_load_content(q='politics', start_date=start_date, end_date=end_date))
+# print(newsapi_load_content(q='politics', start_date=start_date, end_date=end_date))
+
+# Making Executable Action when you run the python file
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-Q",
+        "--query",
+        type=str,
+        default="munich",
+        help="Specify search for words and phrases in the article title and body.",
+    )
+    parser.add_argument(
+        "-S",
+        "--start_date",
+        type=str,
+        default=start_date,
+        help="Specify your earliest coverage date.",
+    )
+    parser.add_argument(
+        "-E",
+        "--end_date",
+        type=str,
+        default=end_date,
+        help="Specify your latest coverage date.",
+    )
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    print(newsapi_load_content(args.query, args.start_date, args.end_date))
 
