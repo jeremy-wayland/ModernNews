@@ -2,36 +2,15 @@
 import argparse
 import os
 from datetime import date, timedelta
+import sys
+import string
+import re
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from newsapi.newsapi_client import NewsApiClient
-
-# Load from .env
-load_dotenv()
-api_key = os.getenv("news-api")
-# Init
-newsapi = NewsApiClient(api_key=api_key)
-
-today = date.today()
-yesterday = today - timedelta(days=1)
-
-start_date = yesterday.strftime("%Y-%m-%d")
-end_date = today.strftime("%Y-%m-%d")
-
-
-# /v2/everything
-all_articles = newsapi.get_everything(
-    q="this weekend AND brooklyn",
-    from_param=start_date,
-    to=end_date,
-    language="en",
-    sort_by="relevancy",
-    page=1,
-    page_size=3,
-)
 
 
 # The News-API is helpful for retrieving the big info on news and articles, like the:
@@ -203,4 +182,30 @@ def newsapi_load_content(
     return df
 
 
+# Making Executable Action when you run the python file
+if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    # Load from .env
+    load_dotenv()
+    api_key = os.getenv("news-api")
+    # Init
+    newsapi = NewsApiClient(api_key=api_key)
+
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+
+    start_date = yesterday.strftime("%Y-%m-%d")
+    end_date = today.strftime("%Y-%m-%d")
+
+    print(
+        newsapi_load_content(
+            q="politics",
+            start_date=start_date,
+            end_date=end_date,
+        )
+    )

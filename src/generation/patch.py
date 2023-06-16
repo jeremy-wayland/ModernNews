@@ -260,14 +260,14 @@ if __name__ == "__main__":
         "-C",
         "--city",
         type=str,
-        default="fortgreene",
+        default="new-york-city",
         help="Specify city your localized patch query.",
     )
     parser.add_argument(
         "-T",
         "--topic",
         type=str,
-        default="sports",
+        default="politics",
         help="Specify topic your localized patch query.",
     )
 
