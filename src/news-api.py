@@ -1,6 +1,5 @@
 " Interface for extracting info from News-API"
 import argparse
-
 import sys
 import os
 from datetime import date, timedelta

@@ -31,7 +31,7 @@ topics = [
 ]
 
 
-def patch_get_content_urls(state, city, topic, max_content=3):
+def patch_get_content_urls(state, city, topic, max_content=5):
     """Load content urls, in list format"""
 
     # Define url template - some url parameters are fixed (ie. events, next-week, pages=1, free events)
@@ -84,11 +84,11 @@ def patch_get_content_urls(state, city, topic, max_content=3):
     return 'Failed HTML response.'
 
 
-def patch_load_content(state, city, topic, max_content=3):
+def patch_load_content(state, city, topic, max_content=5):
     """Load and store up to top N pieces of local events content for this topic, in pandas format"""
 
     # Initial check
-    urls = patch_get_content_urls(state, city, topic, max_content=3)
+    urls = patch_get_content_urls(state, city, topic, max_content=max_content)
 
     # Check if URLs were returned / if there are upcoming events
     if len(urls) > 0:
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         "-C",
         "--city",
         type=str,
-        default="new-york-city",
+        default="brooklyn",
         help="Specify city your localized patch query.",
     )
     parser.add_argument(

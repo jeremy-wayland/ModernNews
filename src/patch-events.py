@@ -175,7 +175,7 @@ if __name__ == "__main__":
         "-C",
         "--city",
         type=str,
-        default="brooklyn",
+        default="fortgreene",
         help="Specify city for your localized patch query.",
     )
 
