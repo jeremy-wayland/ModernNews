@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import argparse
 import sys
 from datetime import date, timedelta
+import pandas as pd
 
 # ### Eventbrite API
 # Load from .env
@@ -13,92 +14,82 @@ api_key = os.getenv("TICKETMASTER_KEY")
 
 tm_client = ticketpy.ApiClient(api_key)
 
-# # Define dates
-today = date.today()
-time_frame = today + timedelta(days=7)
+def load_ticketmaster_events(search, state_code, days_ahead=7):
 
-start_date = today.strftime("%Y-%m-%dT%H:%M:%SZ")
-end_date = time_frame.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Determine how many days to look forward for event search - defaults to one week
+    today = date.today()
+    time_frame = today + timedelta(days=days_ahead)
 
-page = tm_client.events.find(
-    classification_name='hip hop',
-    state_code='NY',
-    start_date_time=start_date,
-    end_date_time=end_date
-).limit()
+    # # Define dates
+    start_date = today.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_date = time_frame.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-for event in page:
-    name = event.name
-    print(name)
+    page = tm_client.events.find(
+        classification_name=search,
+        state_code=state_code,
+        start_date_time=start_date,
+        end_date_time=end_date
+    ).limit()
 
-# ### Eventbrite API
-# Load from .env
-# load_dotenv()
 
-# api_key = os.getenv("TICKETMASTER_KEY")
+    df = pd.DataFrame()
+    event_names = []
+    event_genres = []
+    event_venues = []
+    event_urls = []
 
-# # Load ticketmaster API wrapper
-# tm_client = ticketpy.ApiClient(api_key)
+    for event in page:
+        event_name = event.name
+        event_genre = event.classifications
+        event_venue = event.venues[0].name
+        event_url = event.links['self']
 
-# # Define dates
-# today = date.today()
-# time_frame = today + timedelta(days=7)
+        event_names.append(event_name)
+        event_genres.append(event_genre)
+        event_venues.append(event_venue)
+        event_urls.append(event_url)
 
-# start_date = today.strftime("%Y-%m-%dT%H:%M:%SZ")
-# end_date = time_frame.strftime("%Y-%m-%dT%H:%M:%SZ")
+    df['event_names'] = event_names
+    df['event_genres'] = event_genres
+    df['event_venues'] = event_venues
+    df['event_urls'] = event_urls
 
-# def load_ticketmaster_events(search, state_code, start_date=start_date, end_date=time_frame):
-    
-#     search = search.lower()
-#     state_code = state_code.lower()
+    if len(event_names) > 0:
+        return df
+    else:
+        return "No upcoming events for this search."
 
-#     page = tm_client.events.find(
-#         classification_name=search,
-#         state_code=state_code,
-#         start_date_time=start_date,
-#         end_date_time=time_frame
-#     ).limit()
-
-#     for event in page:
-#         name = event.name
-#         print(name)
+# print(load_ticketmaster_events('brooklyn', 'NY', days_ahead=7))
 
 
 # # Making Executable Action when you run the python file
-# if __name__ == "__main__":
+if __name__ == "__main__":
 
-#     parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-#     parser.add_argument(
-#         "-S",
-#         "--search",
-#         type=str,
-#         default="hip-hop",
-#         help="Specify your event genre or search.",
-#     )
-#     parser.add_argument(
-#         "-C",
-#         "--state_code",
-#         type=str,
-#         default="ny",
-#         help="Specify your event state code.",
-#     )
-#     parser.add_argument(
-#         "-s",
-#         "--start_date",
-#         type=str,
-#         default=start_date,
-#         help="Specify your earliest coverage date.",
-#     )
-#     parser.add_argument(
-#         "-E",
-#         "--end_date",
-#         type=str,
-#         default=end_date,
-#         help="Specify your latest coverage date.",
-#     )
+    parser.add_argument(
+        "-S",
+        "--search",
+        type=str,
+        default="latin",
+        help="Specify your event genre or search.",
+    )
+    parser.add_argument(
+        "-C",
+        "--state_code",
+        type=str,
+        default="ny",
+        help="Specify your event state code.",
+    )
+    parser.add_argument(
+        "-s",
+        "--days_ahead",
+        type=str,
+        default=7,
+        help="Specify your time frame for events in days from today.",
+    )
 
-#     args = parser.parse_args()
-#     this = sys.modules[__name__]
+    args = parser.parse_args()
+    this = sys.modules[__name__]
 
-#     load_ticketmaster_events(args.search, args.state_code, args.start_date, args.end_date)
+    print(load_ticketmaster_events(args.search, args.state_code, args.days_ahead))
