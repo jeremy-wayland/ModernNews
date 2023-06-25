@@ -1,4 +1,5 @@
-" Interface for extracting info from News-API"
+"Interface for extracting info from News-API - time frame is last 24 hours"
+
 import argparse
 import sys
 import os
@@ -156,7 +157,7 @@ def newsapi_get_url_content(url, search_word):
 
 
 def newsapi_load_content(
-    q, start_date, end_date, language="en", sort_by="relevancy", page=1, n_content=5
+    q, start_date=start_date, end_date=end_date, language="en", sort_by="relevancy", page=1, n_content=5
 ):
     """Load and store up to top N pieces of content for this topic, in pandas format"""
 
@@ -208,23 +209,9 @@ if __name__ == "__main__":
         default="street fashion",
         help="Specify search for words and phrases in the article title and body.",
     )
-    parser.add_argument(
-        "-S",
-        "--start_date",
-        type=str,
-        default=start_date,
-        help="Specify your earliest coverage date.",
-    )
-    parser.add_argument(
-        "-E",
-        "--end_date",
-        type=str,
-        default=end_date,
-        help="Specify your latest coverage date.",
-    )
 
     args = parser.parse_args()
     this = sys.modules[__name__]
 
-    print(newsapi_load_content(args.query, args.start_date, args.end_date))
+    print(newsapi_load_content(args.query))
 

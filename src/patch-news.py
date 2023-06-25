@@ -1,4 +1,5 @@
-" Interface for extracting news content info from Patch"
+"Interface for extracting news content info from Patch - time frame is last 24 hours - 1d"
+
 import argparse
 import sys
 import re
@@ -34,7 +35,7 @@ topics = [
 def patch_get_content_urls(state, city, topic, max_content=5):
     """Load content urls, in list format"""
 
-    # Define url template - some url parameters are fixed (ie. events, next-week, pages=1, free events)
+    # Define url template
     url = f"https://patch.com/{state}/{city}/{topic}"
 
     # Make an HTTP GET request to retrieve the HTML content
@@ -62,23 +63,24 @@ def patch_get_content_urls(state, city, topic, max_content=5):
             try:
                 text = div_element.text
                 match = re.search(r"\d+d", text)
-                if match:  # Check if the text contains a date
+                if match.group() == "1d":  # Check if the date is 1d ago
                     texts.append(match.group())
                     indices.append(index)
-                else:
-                    texts.append("None")
             except AttributeError:
                 pass
 
         # SECOND - IDENTIFY URLS FOR RECENT CONTENT
-        div_elements = soup.find_all(
-            "a",
-            class_="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-syvjvm",
-            limit=max_content,
-        )
-        urls = ["https://patch.com" + i["href"] for i in div_elements]
+        if len(texts)>0:
+            div_elements = soup.find_all(
+                "a",
+                class_="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-syvjvm",
+                limit=len(texts)
+            )
+            urls = ["https://patch.com" + i["href"] for i in div_elements]
 
-        return urls
+            return urls
+        else:
+            return 'No recent news.'
 
     # If the request was not successful, return None or handle the error accordingly
     return 'Failed HTML response.'
@@ -91,7 +93,7 @@ def patch_load_content(state, city, topic, max_content=5):
     urls = patch_get_content_urls(state, city, topic, max_content=max_content)
 
     # Check if URLs were returned / if there are upcoming events
-    if len(urls) > 0:
+    if isinstance(urls, list):
 
         # Define dictionary to populate pandas table
         content_dict = {}
@@ -134,9 +136,9 @@ def patch_load_content(state, city, topic, max_content=5):
         return df
 
     else:
-        return "No recent content."
+        return urls
 
-# print(patch_load_content('new-york','bed-stuy','around-town'))
+# print(patch_load_content('new-york','brooklyn','around-town'))
 
 # Making Executable Action when you run the python file
 if __name__ == "__main__":
@@ -154,7 +156,7 @@ if __name__ == "__main__":
         "-C",
         "--city",
         type=str,
-        default="brooklyn",
+        default="new-york-city",
         help="Specify city your localized patch query.",
     )
     parser.add_argument(

@@ -1,4 +1,4 @@
-" Interface for extracting events content from Patch"
+"Interface for extracting events content from Patch - time frame is at least one event within 7 days"
 
 import sys
 import argparse
@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 def patch_get_event_meta(state, city, max_content=5):
     """Load event urls, in list format"""
 
-    # Define url template - some url parameters are fixed (ie. events, next-week, pages=1, free events)
+    # Define url template
     url_template = "https://patch.com/{state}/{city}/calendar"
 
     # Complete url
@@ -56,7 +56,7 @@ def patch_get_event_meta(state, city, max_content=5):
 
             except AttributeError:
                 pass
-
+        
         times = []
         for div_element in div_elements_time:
             try:
@@ -70,7 +70,6 @@ def patch_get_event_meta(state, city, max_content=5):
                 pass
 
         formatted_dates = []
-
         for date, time in zip(days, times):
             formatted_time = datetime.strptime(time, "%I:%M %p").time()
             formatted_datetime = datetime.combine(
@@ -81,15 +80,8 @@ def patch_get_event_meta(state, city, max_content=5):
         # Make sure at LEAST one event, the earliest, is within the next 7 days
         today = date.today().date()
 
-        # Get the first date from the list and parse the date string into a datetime object
-        date_object = datetime.strptime(formatted_dates[0], "%Y-%m-%dT%H:%M:%S")
-        first_date = date_object.date()
-
-        # Calculate the difference in days
-        days_diff = (first_date - today).days
-
-        # Check if the first date is within 7 days from today
-        if 0 <= days_diff <= 7:
+        # Check if any date is within 7 days from today
+        if 1 <= any((datetime.strptime(formatted_dates[0], "%Y-%m-%dT%H:%M:%S").date()-today).days for event_date in formatted_dates) <= 7:
             # SECOND - IDENTIFY URLS FOR DATED CONTENT ABOVE - GET URLS
             div_elements = soup.find_all(
                 "a", class_="styles_Card__Thumbnail__FioCE", limit=max_content
@@ -101,7 +93,8 @@ def patch_get_event_meta(state, city, max_content=5):
             pass
 
     # If the request was not successful, return None or handle the error accordingly
-    return "No upcoming events"
+    else:
+        return "No upcoming events"
 
 def patch_load_event_content(state, city, max_content=5):
     """Load and store up to top N pieces of local events content for this topic, in pandas format"""
@@ -157,7 +150,7 @@ def patch_load_event_content(state, city, max_content=5):
     else:
         return "No recent content."
 
-# print(patch_load_event_content('california','santamonica'))
+# print(patch_load_event_content('new-york','brooklyn'))
 
 # Making Executable Action when you run the python file
 if __name__ == "__main__":
@@ -175,7 +168,7 @@ if __name__ == "__main__":
         "-C",
         "--city",
         type=str,
-        default="fortgreene",
+        default="brooklyn",
         help="Specify city for your localized patch query.",
     )
 

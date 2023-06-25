@@ -1,4 +1,4 @@
-" Interface for extracting info from Eventbrite"
+"Interface for extracting info from Eventbrite - time frame is next week"
 
 import argparse
 import sys

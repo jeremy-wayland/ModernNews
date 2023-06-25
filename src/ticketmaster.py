@@ -1,3 +1,5 @@
+"Interface for extracting info from Ticketmaster - time frame is next 3-10 days"
+
 import os
 import ticketpy
 from dotenv import load_dotenv
@@ -14,15 +16,16 @@ api_key = os.getenv("TICKETMASTER_KEY")
 
 tm_client = ticketpy.ApiClient(api_key)
 
-def load_ticketmaster_events(search, state_code, days_ahead=7):
+def load_ticketmaster_events(search, state_code):
 
     # Determine how many days to look forward for event search - defaults to one week
     today = date.today()
-    time_frame = today + timedelta(days=days_ahead)
+    start = today + timedelta(days=3)
+    end = start + timedelta(days=7)
 
     # # Define dates
-    start_date = today.strftime("%Y-%m-%dT%H:%M:%SZ")
-    end_date = time_frame.strftime("%Y-%m-%dT%H:%M:%SZ")
+    start_date = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_date = end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     page = tm_client.events.find(
         classification_name=search,
@@ -81,15 +84,8 @@ if __name__ == "__main__":
         default="ny",
         help="Specify your event state code.",
     )
-    parser.add_argument(
-        "-s",
-        "--days_ahead",
-        type=str,
-        default=7,
-        help="Specify your time frame for events in days from today.",
-    )
 
     args = parser.parse_args()
     this = sys.modules[__name__]
 
-    print(load_ticketmaster_events(args.search, args.state_code, args.days_ahead))
+    print(load_ticketmaster_events(args.search, args.state_code))
