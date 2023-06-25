@@ -124,7 +124,7 @@ def newsapi_find_url_div_class_with_text(url, search_word):
         # EXPLORE HOW TO IGNORE PAYWALL SITES ALTOGETHER - IDENTIFYING THEM?
         # ALSO NEED TO FIND A WAY TO CUT DOWN ON NUM OF CLASSES - APPLY SOME CONDITIONS?
 
-        if all(word in div.get_text().lower() for word in query):
+        if any(word in div.get_text().lower() for word in query):
             div_class = div.get("class")
             if div_class:
                 for item in div_class:
@@ -132,7 +132,6 @@ def newsapi_find_url_div_class_with_text(url, search_word):
             else:
                 continue
 
-            # If you want to extract the full content of the div, you can use div.get_text() or div.prettify() to get the HTML
     return class_elements
 
 
@@ -206,7 +205,7 @@ if __name__ == "__main__":
         "-Q",
         "--query",
         type=str,
-        default="street fashion",
+        default="real madrid",
         help="Specify search for words and phrases in the article title and body.",
     )
 
