@@ -41,11 +41,31 @@ def get_news_summary(df_news, user_search):
             )
         docs = text_splitter.create_documents([content])
 
-        print('docs length:', len(docs))
+        print('un-adjusted number of docs:', len(docs))
+
+        if len(docs)>7:
+            docs = docs[:7]
+            print('adjusted number of docs:', len(docs))
 
         # Define separate prompts to handle docs indivdually and collectively 
-        prompt_template = f"""Write a concise summary of the following news only as it pertains to {user_search}. If not at all related to that topic, just output an empty string: """ + """{text}""" 
-        combined_prompt_template = f"""Write a concise and cohesive editorial piece in 5-7 sentences summarizing the following news, using a mix of journalistic and conversational language, written in Chicago style, and avoidant of redundancies.""" + """{text}""" 
+        prompt_template = f"""
+        Write a concise summary of the following document as it relates to {user_search}. Otherwise, return a blank string.""" + """
+        
+        Document: {text}
+
+        Summary:
+        """
+        combined_prompt_template = f"""
+        Given the following content summaries, create a concise and cohesive editorial piece, 5-7 sentences in length, that focuses on the 
+        topic of {user_search}, using a mix of journalistic and conversational language, written in Chicago style, and that is avoidant of 
+        redundant language. Include a short and catchy header for the editorial piece.""" + """
+        
+        Content Summaries: {text}
+        
+        Header:
+        
+        Editorial piece:
+        """ 
         
         prompt = PromptTemplate(template=prompt_template, input_variables=["text"])
         combined_prompt = PromptTemplate(template=combined_prompt_template, input_variables=["text"])
