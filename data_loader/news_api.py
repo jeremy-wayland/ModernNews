@@ -156,7 +156,7 @@ def newsapi_get_url_content(url, search_word):
 
 
 def newsapi_load_content(
-    q, start_date=start_date, end_date=end_date, language="en", sort_by="relevancy", page=1, n_content=5
+    q, start_date=start_date, end_date=end_date, language="en", sort_by="relevancy", page=1, n_content=3
 ):
     """Load and store up to top N pieces of content for this topic, in pandas format"""
 
