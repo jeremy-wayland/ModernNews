@@ -4,7 +4,7 @@ from data_loader.news_api import newsapi_load_content
 from src.content_summary import get_news_summary
 
 # User search
-user_search = "nba trade"
+user_search = "film"
 
 # Get NewsAPI content
 result = newsapi_load_content(user_search)

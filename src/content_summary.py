@@ -36,8 +36,8 @@ def get_news_summary(df_news, user_search):
 
         # Reduce content to chunks
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 4000,
-            chunk_overlap  = 100
+            chunk_size = 4500,
+            chunk_overlap  = 0
             )
         docs = text_splitter.create_documents([content])
 
@@ -49,22 +49,23 @@ def get_news_summary(df_news, user_search):
 
         # Define separate prompts to handle docs indivdually and collectively 
         prompt_template = f"""
-        Write a concise summary of the following document as it relates to {user_search}. Otherwise, return a blank string.""" + """
+        Write a summary of the following document as it relates to {user_search}. Otherwise, return a blank string.""" + """
         
         Document: {text}
 
         Summary:
         """
         combined_prompt_template = f"""
-        Given the following content summaries, create a concise and cohesive editorial piece, 5-7 sentences in length, that focuses on the 
-        topic of {user_search}, using a mix of journalistic and conversational language, written in Chicago style, and that is avoidant of 
-        redundant language. Include a short and catchy header for the editorial piece.""" + """
+        Given the following content, create a concise and cohesive objective editorial piece that is 6 sentences long, summarizing the 
+        information as it relates to the topic of {user_search}, using a mix of journalistic and conversational language, written in Chicago style, and that is avoidant of 
+        redundant language. Include a short title for the editorial piece.""" + """
         
         Content Summaries: {text}
         
-        Header:
+        Follow this format:
+        [Editorial Title, in quotation marks]
         
-        Editorial piece:
+        [Editorial piece, in 6 sentences]
         """ 
         
         prompt = PromptTemplate(template=prompt_template, input_variables=["text"])

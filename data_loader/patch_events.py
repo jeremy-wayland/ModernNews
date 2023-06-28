@@ -81,7 +81,7 @@ def patch_get_event_meta(state, city, max_content=5):
         today = date.today().date()
 
         # Check if any date is within 7 days from today
-        if 1 <= any((datetime.strptime(formatted_dates[0], "%Y-%m-%dT%H:%M:%S").date()-today).days for event_date in formatted_dates) <= 7:
+        if 1 <= any((datetime.strptime(event_date, "%Y-%m-%dT%H:%M:%S").date()-today).days for event_date in formatted_dates) <= 7:
             # SECOND - IDENTIFY URLS FOR DATED CONTENT ABOVE - GET URLS
             div_elements = soup.find_all(
                 "a", class_="styles_Card__Thumbnail__FioCE", limit=max_content
@@ -90,11 +90,11 @@ def patch_get_event_meta(state, city, max_content=5):
             urls = ["https://patch.com" + url["href"] for url in div_elements]
             return  formatted_dates, urls
         else:
-            pass
+            return "No upcoming events" , 0
 
     # If the request was not successful, return None or handle the error accordingly
     else:
-        return "No upcoming events"
+        return "No upcoming events" , 0
 
 def patch_load_event_content(state, city, max_content=5):
     """Load and store up to top N pieces of local events content for this topic, in pandas format"""
@@ -144,6 +144,7 @@ def patch_load_event_content(state, city, max_content=5):
 
         # Populate the DataFrame with data from the dictionary
         df["patch_event_desc"] = content_dict["patch_event_desc"]
+        df["patch_event_time"] = content_dict["patch_event_time"]
 
         return df
 
