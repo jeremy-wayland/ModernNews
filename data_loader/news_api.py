@@ -83,27 +83,31 @@ def newsapi_scrape_article_content(url, div_class):
 
     # Check if the request was successful
     if response.status_code == 200:
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(response.content, "html.parser")
 
-        # Find the article content based on HTML tags or classes specific to the website
-        # Customize these lines according to the structure of the website you're scraping
-        article_content = soup.find("div", class_=div_class)
+        try:
+            # Parse the HTML content using BeautifulSoup
+            soup = BeautifulSoup(response.content, "html.parser")
 
-        # Extract the text from the article content
-        article_text = article_content.get_text(separator=" ")
+            # Find the article content based on HTML tags or classes specific to the website
+            # Customize these lines according to the structure of the website you're scraping
+            article_content = soup.find("div", class_=div_class)
 
-        # Reduce consecutive spaces to a single space
-        red_space_text = re.sub(r"\s+", " ", article_text)
+            # Extract the text from the article content
+            article_text = article_content.get_text(separator=" ")
 
-        # Remove '\n' from the text
-        clean_text = red_space_text.replace("\n", "")
+            # Reduce consecutive spaces to a single space
+            red_space_text = re.sub(r"\s+", " ", article_text)
 
-        # Return the scraped article content
-        return clean_text
+            # Remove '\n' from the text
+            clean_text = red_space_text.replace("\n", "")
 
-    # If the request was not successful, return None or handle the error accordingly
-    return None
+            # Return the scraped article content
+            return clean_text
+        except:
+            return "Issue parsing html."
+
+    # If the request was not successful, handle the error accordingly
+    return "HTML response not successful."
 
 
 def newsapi_find_url_div_class_with_text(url, search_word):
@@ -173,10 +177,17 @@ def newsapi_load_content(
 
     # Store content urls for further web parsing
     content_urls = []
+    content_publications = []
+    content_authors = []
 
     for item in top_n_articles["articles"]:
         url = item["url"]
+        publication = item["source"]["name"]
+        author = item["author"]
+
         content_urls.append(url)
+        content_publications.append(publication)
+        content_authors.append(author)
 
     # Get max content for each url and store in pandas dataframe
     df = pd.DataFrame()
@@ -190,6 +201,9 @@ def newsapi_load_content(
 
     # Populate the DataFrame with data from the dictionary
     df["newsapi_content"] = content_dict["newsapi_content"]
+    df["newsapi_url"] = content_urls
+    df["newsapi_publication"] = content_publications
+    df["newsapi_author"] = content_authors
 
     return df
 
