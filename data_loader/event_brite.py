@@ -1,8 +1,9 @@
-" Interface for extracting info from Eventbrite"
+"Interface for extracting info from Eventbrite - time frame is next week"
 
+import argparse
+import sys
 import os
-
-import eventbrite
+from eventbrite import Eventbrite 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -11,9 +12,10 @@ from dotenv import load_dotenv
 # ### Eventbrite API
 # Load from .env
 load_dotenv()
-api_key = os.getenv("eventbrite")
 
-eventbriteapi = eventbrite.Eventbrite(oauth_token=api_key)
+api_key = os.getenv("EVENTBRITE_KEY")
+
+eventbriteapi = Eventbrite(api_key)
 
 # See event ategories in eventbrite
 # [cat['name'] for cat in eventbriteapi.get_subcategories()['subcategories'] if 'name' in cat]
@@ -57,7 +59,8 @@ def eventbrite_get_event_ids(state, city, search, num_events=6):
         return event_ids
 
     # If the request was not successful, return None or handle the error accordingly
-    return None
+
+    return 'No relevant event IDs.'
 
 
 # #### Load content from eventbrite
@@ -96,4 +99,41 @@ def eventbrite_load_events(state, city, search, n_content=3):
     df["eventbrite_time"] = pd.to_datetime(content_dict["eventbrite_time"])
     df["eventbrite_url"] = content_dict["eventbrite_url"]
 
-    return df
+
+    df_sorted = df.sort_values(by='eventbrite_time', ascending=True)
+
+    return df_sorted
+
+# print(eventbrite_load_events('new-york','new-york-city','sports'))
+
+# Making Executable Action when you run the python file
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-S",
+        "--state",
+        type=str,
+        default="new-york",
+        help="Specify state for your localized eventbrite search.",
+    )
+    parser.add_argument(
+        "-C",
+        "--city",
+        type=str,
+        default="new-york-city",
+        help="Specify city for your localized eventbrite search.",
+    )
+    parser.add_argument(
+        "-T",
+        "--topic",
+        type=str,
+        default="sports",
+        help="Specify topic for your localized eventbrite search.",
+    )
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    print(eventbrite_load_events(args.state, args.city, args.topic))

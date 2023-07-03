@@ -1,8 +1,11 @@
-" Interface for extracting info from News-API"
+"Interface for extracting info from News-API - time frame is last 24 hours"
+
 import argparse
+import sys
 import os
 from datetime import date, timedelta
-
+import string
+import re
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -11,7 +14,8 @@ from newsapi.newsapi_client import NewsApiClient
 
 # Load from .env
 load_dotenv()
-api_key = os.getenv("news-api")
+api_key = os.getenv("NEWS_KEY")
+
 # Init
 newsapi = NewsApiClient(api_key=api_key)
 
@@ -20,18 +24,6 @@ yesterday = today - timedelta(days=1)
 
 start_date = yesterday.strftime("%Y-%m-%d")
 end_date = today.strftime("%Y-%m-%d")
-
-
-# /v2/everything
-all_articles = newsapi.get_everything(
-    q="this weekend AND brooklyn",
-    from_param=start_date,
-    to=end_date,
-    language="en",
-    sort_by="relevancy",
-    page=1,
-    page_size=3,
-)
 
 
 # The News-API is helpful for retrieving the big info on news and articles, like the:
@@ -132,7 +124,7 @@ def newsapi_find_url_div_class_with_text(url, search_word):
         # EXPLORE HOW TO IGNORE PAYWALL SITES ALTOGETHER - IDENTIFYING THEM?
         # ALSO NEED TO FIND A WAY TO CUT DOWN ON NUM OF CLASSES - APPLY SOME CONDITIONS?
 
-        if all(word in div.get_text().lower() for word in query):
+        if any(word in div.get_text().lower() for word in query):
             div_class = div.get("class")
             if div_class:
                 for item in div_class:
@@ -140,7 +132,6 @@ def newsapi_find_url_div_class_with_text(url, search_word):
             else:
                 continue
 
-            # If you want to extract the full content of the div, you can use div.get_text() or div.prettify() to get the HTML
     return class_elements
 
 
@@ -165,7 +156,7 @@ def newsapi_get_url_content(url, search_word):
 
 
 def newsapi_load_content(
-    q, start_date, end_date, language="en", sort_by="relevancy", page=1, n_content=3
+    q, start_date=start_date, end_date=end_date, language="en", sort_by="relevancy", page=1, n_content=3
 ):
     """Load and store up to top N pieces of content for this topic, in pandas format"""
 
@@ -176,7 +167,7 @@ def newsapi_load_content(
         to=end_date,
         language=language,
         sort_by=sort_by,
-        page=1,
+        page=page,
         page_size=n_content,
     )
 
@@ -203,4 +194,23 @@ def newsapi_load_content(
     return df
 
 
+# print(newsapi_load_content(q='politics', start_date=start_date, end_date=end_date))
+
+# Making Executable Action when you run the python file
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-Q",
+        "--query",
+        type=str,
+        default="real madrid",
+        help="Specify search for words and phrases in the article title and body.",
+    )
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    print(newsapi_load_content(args.query))
 
