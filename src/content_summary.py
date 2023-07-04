@@ -95,13 +95,14 @@ def get_news_summary(df_news, user_search):
                 print('Content too long, adjusting...')
             
                 # Define an LLM to summarize the content
-                prompt = PromptTemplate.from_template("""Rewrite the following editorial in a single paragraph less than 6 sentences in length, while maintaining all attribution of sources. 
+                prompt = PromptTemplate.from_template("""Rewrite the following editorial in a single paragraph that is 5 sentences in length, while maintaining all attribution of sources. 
                 Editorial: {editorial}
                 
                 Please follow this format:
                 [Editorial Title, in quotation marks]
 
-                [Editorial Body]""")
+                [Editorial Body, in 5 sentences]
+                """)
 
                 # Chaining to Init Callback Handler
                 chain = LLMChain(llm=llm, prompt=prompt)
