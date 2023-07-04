@@ -16,11 +16,26 @@ from langchain.chains import LLMChain
 load_dotenv()
 openai_key = os.getenv("OPENAI_KEY")
 
+# Function to append publication name and author name to chunks
+def append_source_info(row):
+    content = row["newsapi_content"]
+    publication_name = row["newsapi_publication"]
+    author_name = row["newsapi_author"]
+    
+    chunk_size = 4900
+    chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
+    modified_chunks = [f"{chunk}\n\nPublication: {publication_name}\nAuthor: {author_name}" for chunk in chunks]
+    
+    return ''.join(modified_chunks)
+
 # Function to compile all content into one for OpenAI to pick out topics
 def column_to_string(df):
-    content = df.loc[:,"newsapi_content"] + \
-        "publication: " + df.loc[:,"newsapi_publication"] + \
-        "author: " + df.loc[:,"newsapi_author"] # Extract the first column
+
+    # Apply the function to the content column
+    df["modified_content"] = df.apply(append_source_info, axis=1)
+    content = df.loc[:,"modified_content"]
+    
+    # Join all content together
     aggregated_string = ', '.join(content.astype(str))  # Convert values to strings and join them
     return aggregated_string
 
@@ -35,10 +50,10 @@ def get_news_summary(df_news, user_search):
         print("Original content length:", len(content))
 
         # Reduce amount of content
-        content = content[:14975]
+        content = content[:19000]
 
         # Define OpenAI client
-        llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo", openai_api_key=openai_key, request_timeout=120)
+        llm = ChatOpenAI(temperature=1, model="gpt-3.5-turbo", openai_api_key=openai_key, request_timeout=120)
 
         # Reduce content to chunks
         text_splitter = RecursiveCharacterTextSplitter(
@@ -47,9 +62,11 @@ def get_news_summary(df_news, user_search):
             )
         docs = text_splitter.create_documents([content])
 
+        print(len(docs))
+
         combined_prompt_template = f"""
-        Create a concise and cohesive news editorial on the topic of {user_search} given the following content. Do not mention or include any content that does not relate to {user_search}. The report should be a single paragraph 6 sentences long. 
-        Use a mix of journalistic and conversational language, adhering to Chicago style guidelines. When referencing specific parts of the content, credit the publication or author by name if provided.""" + """
+        Create a concise and cohesive news editorial on the topic of {user_search} given the following content. Do not mention or include any content that does not relate to {user_search}. The report should be a single paragraph 6 sentences long, 
+        using a mix of journalistic and conversational language, and adhering to Chicago style guidelines. The goal of the editorial is to provide readers a succinct news update. Please credit the publication of the news when available.""" + """
         
         Content: {text}
 
