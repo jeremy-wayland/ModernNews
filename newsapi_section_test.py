@@ -5,20 +5,7 @@ from src.content_summary import get_news_summary
 import argparse
 import sys
 
-# User search
-# user_search = "stock market"
-
-# Get NewsAPI content
-# result = newsapi_load_content(user_search)
-
-# Summarize NewsAPI content
-# cb, brief_content = get_news_summary(result, user_search)
-
-# print(cb, "\n\n", brief_content)
-
-# print(result)
-
-# Making Executable Action when you run the python file
+# Executable Action for test python file
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
